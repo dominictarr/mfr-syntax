@@ -1,0 +1,85 @@
+// Generated automatically by nearley, version 2.15.1
+// http://github.com/Hardmath123/nearley
+(function () {
+function id(x) { return x[0]; }
+var grammar = {
+    Lexer: undefined,
+    ParserRules: [
+    {"name": "expression", "symbols": ["path"]},
+    {"name": "expression", "symbols": ["object"]},
+    {"name": "expression", "symbols": ["call"]},
+    {"name": "expression", "symbols": ["value"], "postprocess": (d) => d[0]},
+    {"name": "path$macrocall$2", "symbols": ["name"]},
+    {"name": "path$macrocall$3", "symbols": [{"literal":"."}]},
+    {"name": "path$macrocall$1$ebnf$1", "symbols": ["path$macrocall$2"], "postprocess": id},
+    {"name": "path$macrocall$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "path$macrocall$1", "symbols": ["path$macrocall$1$ebnf$1"], "postprocess": d => d[0] ? [d[0][0]] : []},
+    {"name": "path$macrocall$1$ebnf$2$subexpression$1", "symbols": ["path$macrocall$3", "path$macrocall$2"]},
+    {"name": "path$macrocall$1$ebnf$2", "symbols": ["path$macrocall$1$ebnf$2$subexpression$1"]},
+    {"name": "path$macrocall$1$ebnf$2$subexpression$2", "symbols": ["path$macrocall$3", "path$macrocall$2"]},
+    {"name": "path$macrocall$1$ebnf$2", "symbols": ["path$macrocall$1$ebnf$2", "path$macrocall$1$ebnf$2$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "path$macrocall$1", "symbols": ["path$macrocall$2", "path$macrocall$1$ebnf$2"], "postprocess": d => [d[0][0]].concat(d[1].map(e => e[1][0]))},
+    {"name": "path", "symbols": ["path$macrocall$1"], "postprocess": d => ({name:'path', args: d[0]})},
+    {"name": "object_pair", "symbols": ["name", {"literal":":"}, "expression"], "postprocess": ([name, _, expression]) => expression ? [name, expression[0]] : []},
+    {"name": "object$macrocall$2", "symbols": [{"literal":"{"}]},
+    {"name": "object$macrocall$3$macrocall$2", "symbols": ["object_pair"]},
+    {"name": "object$macrocall$3$macrocall$3", "symbols": [{"literal":","}]},
+    {"name": "object$macrocall$3$macrocall$1$ebnf$1", "symbols": ["object$macrocall$3$macrocall$2"], "postprocess": id},
+    {"name": "object$macrocall$3$macrocall$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "object$macrocall$3$macrocall$1", "symbols": ["object$macrocall$3$macrocall$1$ebnf$1"], "postprocess": d => d[0] ? [d[0][0]] : []},
+    {"name": "object$macrocall$3$macrocall$1$ebnf$2$subexpression$1", "symbols": ["object$macrocall$3$macrocall$3", "object$macrocall$3$macrocall$2"]},
+    {"name": "object$macrocall$3$macrocall$1$ebnf$2", "symbols": ["object$macrocall$3$macrocall$1$ebnf$2$subexpression$1"]},
+    {"name": "object$macrocall$3$macrocall$1$ebnf$2$subexpression$2", "symbols": ["object$macrocall$3$macrocall$3", "object$macrocall$3$macrocall$2"]},
+    {"name": "object$macrocall$3$macrocall$1$ebnf$2", "symbols": ["object$macrocall$3$macrocall$1$ebnf$2", "object$macrocall$3$macrocall$1$ebnf$2$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "object$macrocall$3$macrocall$1", "symbols": ["object$macrocall$3$macrocall$2", "object$macrocall$3$macrocall$1$ebnf$2"], "postprocess": d => [d[0][0]].concat(d[1].map(e => e[1][0]))},
+    {"name": "object$macrocall$3", "symbols": ["object$macrocall$3$macrocall$1"]},
+    {"name": "object$macrocall$4", "symbols": [{"literal":"}"}]},
+    {"name": "object$macrocall$1", "symbols": ["object$macrocall$2", "object$macrocall$3", "object$macrocall$4"], "postprocess": d => d[1][0]},
+    {"name": "object", "symbols": ["object$macrocall$1"], "postprocess": d => ({name: 'object', args: d[0].reduce( (a, b) => a.concat(b) )})},
+    {"name": "call$macrocall$2", "symbols": [{"literal":"("}]},
+    {"name": "call$macrocall$3$macrocall$2", "symbols": ["expression"]},
+    {"name": "call$macrocall$3$macrocall$3", "symbols": [{"literal":","}]},
+    {"name": "call$macrocall$3$macrocall$1$ebnf$1", "symbols": ["call$macrocall$3$macrocall$2"], "postprocess": id},
+    {"name": "call$macrocall$3$macrocall$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "call$macrocall$3$macrocall$1", "symbols": ["call$macrocall$3$macrocall$1$ebnf$1"], "postprocess": d => d[0] ? [d[0][0]] : []},
+    {"name": "call$macrocall$3$macrocall$1$ebnf$2$subexpression$1", "symbols": ["call$macrocall$3$macrocall$3", "call$macrocall$3$macrocall$2"]},
+    {"name": "call$macrocall$3$macrocall$1$ebnf$2", "symbols": ["call$macrocall$3$macrocall$1$ebnf$2$subexpression$1"]},
+    {"name": "call$macrocall$3$macrocall$1$ebnf$2$subexpression$2", "symbols": ["call$macrocall$3$macrocall$3", "call$macrocall$3$macrocall$2"]},
+    {"name": "call$macrocall$3$macrocall$1$ebnf$2", "symbols": ["call$macrocall$3$macrocall$1$ebnf$2", "call$macrocall$3$macrocall$1$ebnf$2$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "call$macrocall$3$macrocall$1", "symbols": ["call$macrocall$3$macrocall$2", "call$macrocall$3$macrocall$1$ebnf$2"], "postprocess": d => [d[0][0]].concat(d[1].map(e => e[1][0]))},
+    {"name": "call$macrocall$3", "symbols": ["call$macrocall$3$macrocall$1"]},
+    {"name": "call$macrocall$4", "symbols": [{"literal":")"}]},
+    {"name": "call$macrocall$1", "symbols": ["call$macrocall$2", "call$macrocall$3", "call$macrocall$4"], "postprocess": d => d[1][0]},
+    {"name": "call", "symbols": ["name", "call$macrocall$1"], "postprocess": ([name, value]) => ({name: name, args: value.map(e => e[0]) })},
+    {"name": "name$ebnf$1", "symbols": []},
+    {"name": "name$ebnf$1", "symbols": ["name$ebnf$1", /[a-zA-Z_0-9]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "name", "symbols": [/[a-zA-Z_]/, "name$ebnf$1"], "postprocess": d => d[0]+d[1].join('')},
+    {"name": "_$ebnf$1", "symbols": []},
+    {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", /[\s]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": d => null},
+    {"name": "value", "symbols": ["boolean"]},
+    {"name": "value", "symbols": ["number"]},
+    {"name": "value", "symbols": ["string"]},
+    {"name": "value", "symbols": [], "postprocess": ([d]) => d},
+    {"name": "boolean$string$1", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"u"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "boolean", "symbols": ["boolean$string$1"]},
+    {"name": "boolean$string$2", "symbols": [{"literal":"f"}, {"literal":"a"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "boolean", "symbols": ["boolean$string$2"], "postprocess": d => d},
+    {"name": "null$string$1", "symbols": [{"literal":"n"}, {"literal":"u"}, {"literal":"l"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "null", "symbols": ["null$string$1"], "postprocess": d => 'null'},
+    {"name": "number", "symbols": [{"literal":"0"}], "postprocess": ([d]) => +d},
+    {"name": "number$ebnf$1", "symbols": []},
+    {"name": "number$ebnf$1", "symbols": ["number$ebnf$1", /[0-9]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "number", "symbols": [/[1-9]/, "number$ebnf$1"], "postprocess": ([leading, rest]) => +(leading+rest.join(''))},
+    {"name": "string$ebnf$1", "symbols": []},
+    {"name": "string$ebnf$1", "symbols": ["string$ebnf$1", /[^"]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "string", "symbols": [{"literal":"\""}, "string$ebnf$1", {"literal":"\""}], "postprocess": (d) => d[1].join('')}
+]
+  , ParserStart: "expression"
+}
+if (typeof module !== 'undefined'&& typeof module.exports !== 'undefined') {
+   module.exports = grammar;
+} else {
+   window.grammar = grammar;
+}
+})();
