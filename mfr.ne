@@ -14,14 +14,15 @@ separated1[V, X] ->
 pipe ->
   separated1[non_pipe, "."] {% d => ({name:'pipe', value: d[0]}) %}
 
-#path ->
-#  separated[name, "."] {% d => ({name:'path', value: d[0]}) %}
-
 open_close[OP, V, CL]
   -> $OP $V $CL        {% d => d[1][0] %}
 
-object_pair -> literal_name ":" expression
-  {% ([literal_name, _, expression]) => expression ? [literal_name, expression[0]] : [] %}
+object_pair
+  -> literal_name
+    {% ([literal_name]) => [literal_name, {name: 'get', value: [literal_name]}] %}
+
+  | literal_name ":" expression
+    {% ([literal_name, _, expression]) => expression ? [literal_name, expression[0]] : [] %}
 
 object ->
     open_close["{", separated[object_pair, ","], "}"]
@@ -57,4 +58,6 @@ number
 # weird, disable
 
 string -> "\"" [^"]:* "\""        {% (d) => d[1].join('') %}
+
+
 
