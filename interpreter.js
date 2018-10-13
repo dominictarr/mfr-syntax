@@ -17,7 +17,6 @@ exports.pipe = function (value, ops, stack) {
 
 //only allows exact strings?
 exports.get = function (value, path) {
-  console.log("GET", value, path)
   return value[path[0]]
 }
 
@@ -97,6 +96,7 @@ exports.set = function (value, args, stack) {
   value[key] = interpret_arg(value[key], args[1], stack)
   return value
 }
+
 
 
 
