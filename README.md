@@ -5,6 +5,12 @@ actually, this also replaces the AST and thus interpreter,
 so it's not even a rewrite it's a reinvention inspired by map-filter-reduce.
 But, it has the same goals, but a better means to achive them.
 
+## influences
+
+I didn't set out to create something like this, but some of the core ideas (. as pipe operator)
+I must have got from [pandalang](http://pandalang.org/) also, [APL](https://en.wikipedia.org/wiki/APL_\(programming_language\))
+has also goes in this direction (although is incomprensible!)
+
 ## development status
 
 The following documentation explains the _benefits_ of this redesign - there is enough code
