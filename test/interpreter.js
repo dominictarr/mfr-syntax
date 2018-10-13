@@ -88,11 +88,13 @@ tape('simple', function (t) {
       return actual
     })
   }
-
+  /*
+  //this is wrong: parent(0) should be parent(1)
   t.deepEqual(eval(value,
     AST([
       'foo.{bar:bar,baqq:baz.parent(0)}', //TODO nice syntax for parent, and object to same key
       'foo.{bar,baqq:baz.parent(0)}', //TODO nice syntax for parent, and object to same key
+      'foo.{bar,baqq:baz}',
     ],
       pipe(
         get('foo'),
@@ -106,9 +108,13 @@ tape('simple', function (t) {
         )
       )
     ), {bar: false, baqq: 1})
-
+  */
   t.deepEqual(eval(value,
-    AST('foo.{bar:bar,baqq:baz.parent(1).qux}',
+    AST([
+      'foo.{bar:bar,baqq:baz.parent(1).qux}',
+      'foo.{bar,baqq:baz.parent(1).qux}',
+      'foo.{bar,baqq:baz..qux}',
+    ],
     pipe(
       get('foo'),
       object({
@@ -123,7 +129,10 @@ tape('simple', function (t) {
     )), {bar: false, baqq: 3})
 
   t.deepEqual(eval(value,
-    AST('foo.{bar:bar,baqq:baz.parent(2).fop}',
+    AST([
+      'foo.{bar:bar,baqq:baz.parent(2).fop}',
+      'foo.{bar,baqq:baz...fop}',
+    ],
     pipe(
       get('foo'),
       object({
@@ -140,10 +149,11 @@ tape('simple', function (t) {
 
   t.equal(eval(value, pipe(get('fop'), gt(0))), false)
 
-//  t.equal(eval(value, pipe(get('more'), all(eq())
-
   t.deepEqual(eval(value,
-    AST('{fooQux:foo.qux,equal:foo.qux.eq(parent(2).more.get(2))}',
+    AST([
+      '{fooQux:foo.qux,equal:foo.qux.eq(parent(2).more.get(2))}',
+      '{fooQux:foo.qux,equal:foo.qux.eq(..more.get(2))}'
+    ],
     object({
       fooQux: pipe(get('foo'), get('qux')),
       equal: pipe(get('foo'), get('qux'), eq(pipe(parent(2), get('more'), get(2))))
@@ -164,7 +174,9 @@ tape('simple', function (t) {
   */
 
   t.deepEqual(eval(value,
+    AST('more.filter(eq(2))',
     pipe(get('more'), filter(eq(2)))
+    )
   ), [2])
 
   t.end()
@@ -260,11 +272,26 @@ var edges = [ { from: 0, to: 0 },
 ]
 
 tape('reduce graph', function (t) {
-  var ast = pipe(
+  function AST(src, expected) {
+    return each(src, function (src) {
+      console.log('interpret:', src)
+      var actual = decode(src)
+
+      t.deepEqual(actual, expected)
+      t.deepEqual(JSON.stringify(actual), JSON.stringify(expected))
+      return actual
+    })
+  }
+
+
+  var ast = AST([
+    'filter(from.eq(0)).reduce(set(parent(1).to,true),{})',
+    'filter(from.eq(0)).reduce(set(.to,true),{})'
+  ], pipe(
       filter(pipe(get('from'), eq(0))),
       reduce(set(pipe(parent(1), get('to')), true), object())
     )
-  console.log(JSON.stringify(ast))
+  )
   t.deepEqual(eval(edges, ast), {0: true, 1: true, 2: true})
 
   var ast2 = reduce(
@@ -306,6 +333,7 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
+
 
 
 
