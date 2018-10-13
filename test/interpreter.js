@@ -66,6 +66,12 @@ var value = {
   more: [1,2,3]
 }
 
+function each(a, iter) {
+  if('string' == typeof a) return iter(a)
+  for(var i = 0; i < a.length; i++)
+    var v = iter(a[i])
+  return v
+}
 
 tape('simple', function (t) {
   t.equal(eval(value, get('easy')), true)
@@ -73,16 +79,21 @@ tape('simple', function (t) {
   t.equal(eval(value, pipe(get('foo'), get('bar'))), false)
 
   function AST(src, expected) {
-    var actual = decode(src)
+    return each(src, function (src) {
+      console.log('interpret:', src)
+      var actual = decode(src)
 
-    t.deepEqual(actual, expected)
-    t.deepEqual(JSON.stringify(actual), JSON.stringify(expected))
-    return actual
+      t.deepEqual(actual, expected)
+      t.deepEqual(JSON.stringify(actual), JSON.stringify(expected))
+      return actual
+    })
   }
 
   t.deepEqual(eval(value,
-    AST(
-      'foo.{bar:bar,baqq:baz.parent(0)}',
+    AST([
+      'foo.{bar:bar,baqq:baz.parent(0)}', //TODO nice syntax for parent, and object to same key
+      'foo.{bar,baqq:baz.parent(0)}', //TODO nice syntax for parent, and object to same key
+    ],
       pipe(
         get('foo'),
         object({
@@ -97,6 +108,7 @@ tape('simple', function (t) {
     ), {bar: false, baqq: 1})
 
   t.deepEqual(eval(value,
+    AST('foo.{bar:bar,baqq:baz.parent(1).qux}',
     pipe(
       get('foo'),
       object({
@@ -108,9 +120,10 @@ tape('simple', function (t) {
         )
         })
       )
-    ), {bar: false, baqq: 3})
+    )), {bar: false, baqq: 3})
 
   t.deepEqual(eval(value,
+    AST('foo.{bar:bar,baqq:baz.parent(2).fop}',
     pipe(
       get('foo'),
       object({
@@ -122,7 +135,7 @@ tape('simple', function (t) {
         )
         })
       )
-    ), {bar: false, baqq: -1})
+    )), {bar: false, baqq: -1})
 
 
   t.equal(eval(value, pipe(get('fop'), gt(0))), false)
@@ -130,13 +143,12 @@ tape('simple', function (t) {
 //  t.equal(eval(value, pipe(get('more'), all(eq())
 
   t.deepEqual(eval(value,
+    AST('{fooQux:foo.qux,equal:foo.qux.eq(parent(2).more.get(2))}',
     object({
       fooQux: pipe(get('foo'), get('qux')),
-      equal: pipe(
-        pipe(get('foo'), get('qux')),
-        eq(pipe(parent(1), get('more'), get(2))))
+      equal: pipe(get('foo'), get('qux'), eq(pipe(parent(2), get('more'), get(2))))
    })
-  ),
+  )),
     {fooQux: 3, equal: true }
   )
 
