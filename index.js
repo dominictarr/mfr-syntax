@@ -6,7 +6,7 @@ function parse (string) {
   parser.feed(string)
   var a = parser.results
   if(a.length  === 0) throw new Error('unexpected end')
-  return a[0]
+  return a[0][0]
 }
 
 exports.decode = function (str) {
