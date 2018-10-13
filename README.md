@@ -70,7 +70,7 @@ filter(value.content.{
   type: eq("contact"), contact: isFeed(),
   following: or(isBoolean(), .blocking.isBoolean()
 })
-map({
+.map({
   from: value.author,
   to: value.content.contact,
   value:
@@ -106,6 +106,11 @@ This also means the code generally reads from _left to right, top to bottom_.
 
 (while there are some right to left written languages, I don't know of any bottom to top languages!)
 Should it be strange that code often reads from inside to outside?
+
+### note to self: make pipeline always start with .?
+
+if a pipeline always starts with . then we get two things: call a function with fully
+explicit arguments foo.eq(.bar) becomes `eq(.foo, .bar)` (and the previous way becomes `.foo.eq(..bar)`)
 
 ### .. means "parent" as in unix directories
 
@@ -152,6 +157,33 @@ many ...'s to have.
 Also, I realize that the parent operator only needs to be allowed at the start of a pipeline,
 in the middle or end is silly! (since it just throws away those values)
 
+## maybe pipelines need a . at the start?
+
+if `.eq(2)` means pipe input to `eq(.,2)` maybe . should be required to start the pipe.
+then we get simpler stack access sometimes.
+
+```
+//here, value.content is passed into and(.value.content,...) but since it's already truthy
+//it has no effect on output.
+filter(.value.content.and(
+  .type.eq('contact'),
+  .contact.isFeed(),
+  or(.following.isBoolean(), .blocking.isBoolean())
+))
+//if it was or, it would have an unintended effect though.
+//but you could do .value.content.call(or(.type.eq('contact'), value)
+//to break out of that maybe?
+```
+that would make the join example just be:
+
+```
+replies: source("log").filter(eq(.value.content.root, ..key))
+```
+
+If functions need a . to start the pipe..., then a single . refers to the current item.
+.. refers to the parent. then `foo.bar.call(eq(.,2))` is the same as `foo.bar.eq(2)`
+(or `eq(foo.bar, 2)`) hmm, too many ways to express something will become a problem.
+
 ## Abstract Syntaxt Tree (AST)
 
 Joins were something that I always wanted in `map-filter-reduce` but wasn't sure how to do them.
@@ -167,8 +199,14 @@ The new AST is more lispy:
 ``
 which are recursively nested.
 
+
+
+
 ## License
 
 MIT
+
+
+
 
 
