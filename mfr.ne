@@ -14,32 +14,29 @@ separated1[V, X] ->
     $V ( $X $V ):+
                        {% d => [d[0][0]].concat(d[1].map(e => e[1][0])) %}
 
-#parent -> (".":*) {% (d) => ({name: 'parent', data: d, value: [d[0].length]}) %}
-
 pipe ->
   ".":+ {% d => ({name: 'parent', value: [d[0].length]}) %}
-  | (".":* (non_pipe (".":+ non_pipe):*) ".":*)
+  | ".":* non_pipe ("." non_pipe):*
 
     {%
-      ([[start, mid, end]]) => {
+      (d) => {
         function parent(n) {
           if(n > 0) return {name: 'parent', value: [n]}
         }
-        var value = [parent(start.length), mid[0]]
-        .concat(mid[1].map(e=> [parent(e[0].length-1), e[1]]).reduce((a,b) => a.concat(b), []))
-        .concat(parent(end.length)).filter(Boolean)
+        var value = (d[0].length ? [parent(d[0].length)] : []).concat([d[1]].concat(d[2].map(e => e[1])))
+//          d
+          //first.concat(rest.map(e => e[1]))
+  //      )
+        
+//        var value = [parent(start.length), mid[0]]
+//        .concat(mid[1].map(e=> [parent(e[0].length-1), e[1]]).reduce((a,b) => a.concat(b), []))
+//        .concat(parent(end.length)).filter(Boolean)
 
         if(value.length == 1) return value[0]
 
         return {name: 'pipe', value: value}
       }
     %}
-
-#pipe ->
-#  separated1[non_pipe, "."] {% d => ({
-#    name:'pipe',
-#    value: d[0]//.map(function (e) { return e == null ? {name: 'parent', value: [1]} : e })
-#}) %}
 
 open_close[OP, V, CL]
   -> $OP $V $CL        {% d => d[1][0] %}
@@ -101,6 +98,20 @@ number
 
 #TODO fix strings to support full escapes
 string -> "\"" [^"]:* "\""        {% (d) => d[1].join('') %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
