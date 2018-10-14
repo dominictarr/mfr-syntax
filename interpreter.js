@@ -44,7 +44,6 @@ function safe_set(object, key, value) {
     return null //cannot update prototype!
   else
     object[key] = value
-
   return object
 }
 
@@ -63,10 +62,10 @@ exports.pipe = function (value, ops, stack) {
 //special for async
 exports.object = function (value, pairs, stack) {
   var o = {}
-
+  stack = [value].concat(stack)
   for(var i = 0; i < pairs.length; i += 2) {
     var _key = pairs[i], _value = pairs[i+1]
-    o[_key] = interpreter(value, _value, stack)
+    o[_key] = interpret_arg(safe_get(value, _key), _value, stack)
   }
 
   return o
@@ -74,10 +73,13 @@ exports.object = function (value, pairs, stack) {
 
 //special for async
 exports.parent = function (value, args, stack) {
+  if(!Number.isInteger(args[0]) && args[0] >= 0) return null
+  //is value == stack[0] ?
   return stack[args[0]]
 }
 
 function interpret_arg (value, arg, stack) {
+//  if(value !== stack[0]) throw new Error('incorrect stack')
   if(arg && 'object' === typeof arg)
     return interpreter(value, arg, stack)
   else
@@ -121,7 +123,24 @@ exports.reduce = function (value, args, stack) {
 exports.set = function (value, args, stack) {
   if(value == null) value = {}
   var key = interpret_arg(value, args[0], stack)
-  safe_set(value, key, interpret_arg(safe_get(value, key), args[1], stack))
-  return value
+  // SECURITY: what happens if someone tries to set a value to it's parent, creating a cycle?
+  // if we had a recursive operator that could be an infinite loop.
+  // when that message is serialized to JSON it will throw an error.
+  // would be good just to nip that in the bud.
+  //
+  // if the value being set is an object, iterate up the stack and check it's not set already.
+  // if it was the same object as before, we can skip the check.
+  var __value = safe_get(value, key)
+
+  var _value = interpret_arg(__value, args[1], stack)
+  if('object' === typeof _value && _value !== __value) {
+    for(var i = 0; i < stack.length; i++)
+      if(stack[i] === _value)
+        return value //just ignore it!
+
+    //if each test passes, fall through to safe_set
+  }
+
+  return safe_set(value, key, _value)
 }
 
