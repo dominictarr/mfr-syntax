@@ -15,9 +15,40 @@ exports.pipe = function (value, ops, stack) {
   return value
 }
 
-//only allows exact strings?
+//only allow strings or integers.
+//do not allow access of functions, or __proto__
+function safe_get (value, key) {
+  var result
+  if(!value) return null
+  if('object' !== typeof value) return null
+  if(Array.isArray(value)) {
+    if(!Number.isInteger(key)) return null)
+    result = value[key >= 0 ? key : value.length+key]
+  }
+  //excludes __proto__, and anything inherited
+  if(Object.hasOwnProperty.call(value, key))
+    result = value[key]
+  if('function' === typeof result) return null
+  return result
+}
+
+function safe_set(object, key, value) {
+  if(!object) return null
+  if('object' !== typeof object) return null
+  if(Array.isArray(object)) {
+    if(!Number.isInteger(key)) return null)
+    value[key >= 0 ? key : key.length + key] = value
+  }
+  else if(key === '__proto__')
+    return null //cannot update prototype!
+  else
+    value[key]
+
+  return value
+}
+
 exports.get = function (value, path) {
-  return value[path[0]]
+  return safe_get(value, path[0])
 }
 
 
@@ -93,14 +124,13 @@ exports.reduce = function (value, args, stack) {
 exports.set = function (value, args, stack) {
   if(value == null) value = {}
   var key = interpret_arg(value, args[0], stack)
-  value[key] = interpret_arg(value[key], args[1], stack)
+  if(key == '__proto__') {
+    throw new Error('mfr: refusing to set prototype of object')
+    return value
+  }
+  safe_set(value, key, interpret_arg(safe_get(value, key), args[1], stack))
   return value
 }
-
-
-
-
-
 
 
 
