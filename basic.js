@@ -109,3 +109,8 @@ exports.round = function (a, b) {
   b = b || 1
   return Math.round(a/b)*b
 }
+
+//does nothing
+exports.id = function (a) {
+  return a
+}
