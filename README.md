@@ -206,11 +206,18 @@ The new AST is more lispy:
 which are recursively nested.
 
 
+## safety/security log
 
+list of things I have done to make this safe to allow users to call
+
+* queries cannot access any functions on data, or anything not a `hasOwnProperty`
+* cannot set dangerous fields such as __proto__ that may effect user data
+* cannot create use `set` to create a cycle. (for non object values, does not need to check)
 
 ## License
 
 MIT
+
 
 
 
