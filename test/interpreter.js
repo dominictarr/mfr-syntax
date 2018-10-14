@@ -55,6 +55,10 @@ function set(key, value, defaults) {
   return {name: 'set', value: [key, value]}
 }
 
+function id() {
+  return {name: 'id', value: []}
+}
+
 var value = {
   easy: true,
   foo: {
@@ -88,37 +92,18 @@ tape('simple', function (t) {
       return actual
     })
   }
-  /*
-  //this is wrong: parent(0) should be parent(1)
   t.deepEqual(eval(value,
     AST([
-      'foo.{bar:bar,baqq:baz.parent(0)}', //TODO nice syntax for parent, and object to same key
-      'foo.{bar,baqq:baz.parent(0)}', //TODO nice syntax for parent, and object to same key
-      'foo.{bar,baqq:baz}',
-    ],
-      pipe(
-        get('foo'),
-        object({
-          bar:get('bar'),
-          baqq: pipe(
-            get('baz'),
-            parent(0)
-          )
-          })
-        )
-      )
-    ), {bar: false, baqq: 1})
-  */
-  t.deepEqual(eval(value,
-    AST([
-      'foo.{bar:bar,baqq:baz.parent(1).qux}',
-      'foo.{bar,baqq:baz.parent(1).qux}',
+      'foo.{bar:id(),baqq:.baz.parent(1).qux}',
+//      'foo.{bar:id(),baqq:.}',
+      'foo.{bar,baqq:.baz.parent(1).qux}',
     ],
     pipe(
       get('foo'),
       object({
-        bar:get('bar'),
+        bar:id(),
         baqq: pipe(
+          parent(1),
           get('baz'),
           parent(1),
           get('qux')
@@ -127,29 +112,30 @@ tape('simple', function (t) {
       )
     )), {bar: false, baqq: 3})
 
+
+
   //correct way to perform the above query
   t.deepEqual(eval(value,
     AST([
-      'foo.{bar,baqq:qux}',
+      'foo.{bar,baqq:.qux}',
     ],
     pipe(
       get('foo'),
-      object({ bar:get('bar'), baqq: get('qux') })
+      object({ bar:id(), baqq: pipe(parent(1), get('qux')) })
       )
     )), {bar: false, baqq: 3})
 
-
   t.deepEqual(eval(value,
     AST([
-      'foo.{bar:bar,baqq:parent(1).fop}',
-      'foo.{bar,baqq:.fop}',
+      'foo.{bar:id(),baqq:parent(2).fop}',
+      'foo.{bar,baqq:..fop}',
     ],
     pipe(
       get('foo'),
       object({
-        bar:get('bar'),
+        bar:id(),
         baqq: pipe(
-          parent(1),
+          parent(2),
           get('fop')
         )
         })
@@ -157,20 +143,22 @@ tape('simple', function (t) {
     )), {bar: false, baqq: -1})
 
 
-  t.equal(eval(value, pipe(get('fop'), gt(0))), false)
+  t.equal(eval(value, AST('fop.gt(0)', pipe(get('fop'), gt(0)))), false)
 
   t.deepEqual(eval(value,
     AST([
-      '{fooQux:foo.qux,equal:foo.qux.eq(parent(2).more.get(2))}',
-      '{fooQux:foo.qux,equal:foo.qux.eq(..more.get(2))}'
+      '{fooQux:.foo.qux,equal:.foo.qux.eq(parent(2).more.get(2))}',
+      '{fooQux:.foo.qux,equal:.foo.qux.eq(..more.get(2))}'
     ],
     object({
-      fooQux: pipe(get('foo'), get('qux')),
-      equal: pipe(get('foo'), get('qux'), eq(pipe(parent(2), get('more'), get(2))))
+      fooQux: pipe(parent(1), get('foo'), get('qux')),
+      equal: pipe(parent(1), get('foo'), get('qux'), eq(pipe(parent(2), get('more'), get(2))))
    })
   )),
     {fooQux: 3, equal: true }
   )
+
+
 
   // "{fooQux: foo.qux, equal: foo.qux.eq(.more[2])}"
 
@@ -293,7 +281,6 @@ tape('reduce graph', function (t) {
     })
   }
 
-
   var ast = AST([
     'filter(from.eq(0)).reduce(set(parent(1).to,true),{})',
     'filter(from.eq(0)).reduce(set(.to,true),{})'
@@ -320,8 +307,6 @@ tape('reduce graph', function (t) {
     reduce([.value.author]=[.value.content.contact]=.value.content.following, {})
   */
 
-//  set([.from, .to], .value
-
   var o = {}
   edges.forEach(e => (o[e.from] = o[e.from] || {})[e.to] = true )
 
@@ -343,6 +328,4 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
-
-
 
