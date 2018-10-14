@@ -33,7 +33,7 @@ open_close[OP, V, CL]
 
 object_pair
   -> literal_name
-    {% ([literal_name]) => [literal_name, {name: 'get', value: [literal_name]}] %}
+    {% ([literal_name]) => [literal_name, {name: 'id', value: []}] %}
 
   | literal_name ":" expression
     {% ([literal_name, _, expression]) => expression ? [literal_name, expression[0]] : [] %}
@@ -53,27 +53,31 @@ boolean -> ("true" | "false")        {% ([d]) => d[0] === 'true' //
 %}
 
 name ->
-    [a-zA-Z_] [a-zA-Z_0-9]:*     {% (d, l, reject) => {
-      var v = d[0]+d[1].join('')
-      // ugly hack, not sure how to make nearley pick true only as value
-      if(v === 'true' || v === 'false' || v ==='null') return reject
-      return {name: 'get', value: [v]}
+    [a-zA-Z_] [a-zA-Z_0-9]:*
+
+{% (d, _, reject) => {
+    var v = d[0]+d[1].join('')
+    // ugly hack, not sure how to make nearley pick true only as value
+    if(v === 'true' || v === 'false' || v ==='null') return reject
+    return {name: 'get', value: [v]}
   }
 %}
 
-literal_name -> [a-zA-Z_] [a-zA-Z_0-9]:*     {% d => {
+literal_name -> [a-zA-Z_] [a-zA-Z_0-9]:*
+{% d => {
     var v = d[0]+d[1].join('')
     return v
   }
 %}
 
-value -> (boolean | number | string | nul) {% d => {
+value -> (boolean | number | string | nul)
+{% d => {
   if(d[0][0] == null) throw new Error('null in value')
   return d[0][0]
 } %}
 
 
-# null needs to be a literal, because nearley handles it
+# null needs to be a literal, because nearley handles it specially (i think)
 nul -> "null"                     {% d => ({name: 'null', value: null}) %}
 
 #TODO better numbers!!!
