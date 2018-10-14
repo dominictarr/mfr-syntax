@@ -1,4 +1,3 @@
-
 function interpreter (value, ast, stack) {
   if(!exports[ast.name]) throw new Error('unknown method:'+ast.name+', '+JSON.stringify(ast))
   if(!stack) stack = [value]
@@ -7,13 +6,15 @@ function interpreter (value, ast, stack) {
 
 exports = module.exports = interpreter
 
-exports.pipe = function (value, ops, stack) {
-  for(var i = 0; i < ops.length; i++) {
-    value = interpreter(value, ops[i], stack)
-    stack = [value].concat(stack)
+//basic operations: all the stuff a normal language might
+//have built in operators for.
+var basic = require('./basic')
+
+for(var k in basic) (function (fn, name) {
+  exports[name] = function (value, args, stack) {
+    return fn(value, interpret_arg(value, args[0], stack))
   }
-  return value
-}
+})(basic[k], k)
 
 //only allow strings or integers.
 //do not allow access of functions, or __proto__
@@ -22,7 +23,7 @@ function safe_get (value, key) {
   if(!value) return null
   if('object' !== typeof value) return null
   if(Array.isArray(value)) {
-    if(!Number.isInteger(key)) return null)
+    if(!Number.isInteger(key)) return null
     result = value[key >= 0 ? key : value.length+key]
   }
   //excludes __proto__, and anything inherited
@@ -36,21 +37,28 @@ function safe_set(object, key, value) {
   if(!object) return null
   if('object' !== typeof object) return null
   if(Array.isArray(object)) {
-    if(!Number.isInteger(key)) return null)
-    value[key >= 0 ? key : key.length + key] = value
+    if(!Number.isInteger(key)) return null
+    object[key >= 0 ? key : key.length + key] = value
   }
   else if(key === '__proto__')
     return null //cannot update prototype!
   else
-    value[key]
+    object[key] = value
 
-  return value
+  return object
 }
 
 exports.get = function (value, path) {
   return safe_get(value, path[0])
 }
 
+exports.pipe = function (value, ops, stack) {
+  for(var i = 0; i < ops.length; i++) {
+    value = interpreter(value, ops[i], stack)
+    stack = [value].concat(stack)
+  }
+  return value
+}
 
 //special for async
 exports.object = function (value, pairs, stack) {
@@ -103,17 +111,6 @@ exports.if = function (value, args, stack) {
   )
 }
 
-//basic operators
-//I think these can have the arg pre-evaluated
-
-var basic = require('./basic')
-
-for(var k in basic) (function (fn, name) {
-  exports[name] = function (value, args, stack) {
-    return fn(value, interpret_arg(value, args[0], stack))
-  }
-})(basic[k], k)
-
 exports.reduce = function (value, args, stack) {
   var initial = interpret_arg(value, args[1], stack)
   return value.reduce(function (a, b) {
@@ -124,13 +121,7 @@ exports.reduce = function (value, args, stack) {
 exports.set = function (value, args, stack) {
   if(value == null) value = {}
   var key = interpret_arg(value, args[0], stack)
-  if(key == '__proto__') {
-    throw new Error('mfr: refusing to set prototype of object')
-    return value
-  }
   safe_set(value, key, interpret_arg(safe_get(value, key), args[1], stack))
   return value
 }
-
-
 
