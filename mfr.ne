@@ -16,25 +16,15 @@ separated1[V, X] ->
 
 pipe ->
   ".":+ {% d => ({name: 'parent', value: [d[0].length]}) %}
-  | ".":* non_pipe ("." non_pipe):*
-
+  | non_pipe {% d => d[0] %}
+  | ".":+ non_pipe {% d => ({name: 'pipe', value: [{name: 'parent', value: [d[0].length] }, d[1]] }) %}
+  | ".":* non_pipe ("." non_pipe):+
     {%
       (d) => {
-        function parent(n) {
-          if(n > 0) return {name: 'parent', value: [n]}
+        return {
+          name: 'pipe', value: (d[0].length ? [{name: 'parent', value: [d[0].length]}] : [])
+            .concat([d[1]].concat(d[2].map(e => e[1])))
         }
-        var value = (d[0].length ? [parent(d[0].length)] : []).concat([d[1]].concat(d[2].map(e => e[1])))
-//          d
-          //first.concat(rest.map(e => e[1]))
-  //      )
-        
-//        var value = [parent(start.length), mid[0]]
-//        .concat(mid[1].map(e=> [parent(e[0].length-1), e[1]]).reduce((a,b) => a.concat(b), []))
-//        .concat(parent(end.length)).filter(Boolean)
-
-        if(value.length == 1) return value[0]
-
-        return {name: 'pipe', value: value}
       }
     %}
 
@@ -86,32 +76,11 @@ value -> (boolean | number | string | nul) {% d => {
 # null needs to be a literal, because nearley handles it
 nul -> "null"                     {% d => ({name: 'null', value: null}) %}
 
+#TODO better numbers!!!
 number
   -> "0"                           {% ([d]) => +d %}
   | ([1-9] [0-9]:*)                  {% ([[leading, rest]]) => +(leading+rest.join('')) %}
 
-#{% id %}
-# weird, disable
-
-#string -> "NYI"
-
-
 #TODO fix strings to support full escapes
 string -> "\"" [^"]:* "\""        {% (d) => d[1].join('') %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
