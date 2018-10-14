@@ -113,7 +113,6 @@ tape('simple', function (t) {
     AST([
       'foo.{bar:bar,baqq:baz.parent(1).qux}',
       'foo.{bar,baqq:baz.parent(1).qux}',
-      'foo.{bar,baqq:baz..qux}',
     ],
     pipe(
       get('foo'),
@@ -128,18 +127,29 @@ tape('simple', function (t) {
       )
     )), {bar: false, baqq: 3})
 
+  //correct way to perform the above query
   t.deepEqual(eval(value,
     AST([
-      'foo.{bar:bar,baqq:baz.parent(2).fop}',
-      'foo.{bar,baqq:baz...fop}',
+      'foo.{bar,baqq:qux}',
+    ],
+    pipe(
+      get('foo'),
+      object({ bar:get('bar'), baqq: get('qux') })
+      )
+    )), {bar: false, baqq: 3})
+
+
+  t.deepEqual(eval(value,
+    AST([
+      'foo.{bar:bar,baqq:parent(1).fop}',
+      'foo.{bar,baqq:.fop}',
     ],
     pipe(
       get('foo'),
       object({
         bar:get('bar'),
         baqq: pipe(
-          get('baz'),
-          parent(2),
+          parent(1),
           get('fop')
         )
         })
@@ -333,8 +343,6 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
-
-
 
 
 
