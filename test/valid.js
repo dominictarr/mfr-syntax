@@ -10,7 +10,6 @@ var valid = [
   'foo.bar.{key:1,value:2}',
   'foo.{bar:bar,baqq:baz.parent(0)}',
   'foo.{bar,baqq:baz.parent(0)}',
-  'foo...bar', //TODO: disallow parent operator in the middle of a pipe
   '.bar',
   '..bar.foo',
   '.',
@@ -24,6 +23,7 @@ valid.forEach(function (v, i) {
   console.log(v)
   console.log(JSON.stringify(mfr.decode(v)))
 })
+
 
 
 
