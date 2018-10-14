@@ -83,8 +83,10 @@ nul -> "null"                     {% d => ({name: 'null', value: null}) %}
 #TODO better numbers!!!
 number
   -> "0"                           {% ([d]) => +d %}
+  | "0." [0-9]:+                   {% ([d, r]) => +(d+r.join('')) %}
   | ([1-9] [0-9]:* ("." [0-9]:+):?)                  {% ([[leading, rest, decimal]]) => +((leading+rest.join('')) + (decimal ? '.' + decimal[1].join('') :'')) %}
 
 #TODO fix strings to support full escapes
 string -> "\"" [^"]:* "\""        {% (d) => d[1].join('') %}
+
 
