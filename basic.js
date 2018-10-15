@@ -9,8 +9,11 @@
 // add a number to a string should also not concatenate.
 // you shouldn't be able to `add` two strings, you should `cat` them.
 // if you do want to covert to strings or numbers, there should be an explicit operation for that.
-// etc.
-// but every comparison should be defined.
+//
+// don't make _length_ be a property of a string.
+// have a length() function.
+//
+// every comparison should be defined.
 
 exports.gt = function (a, b) {
   return a > b
