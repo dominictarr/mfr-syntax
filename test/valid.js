@@ -24,15 +24,6 @@ var valid = [
 valid.forEach(function (v, i) {
   console.log(i)
   console.log(v)
-  console.log(JSON.stringify(mfr.decode(v)))
+  console.log(JSON.stringify(mfr.decode(v, true)))
 })
-
-
-
-
-
-
-
-
-
 
