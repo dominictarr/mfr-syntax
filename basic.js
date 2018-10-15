@@ -4,6 +4,14 @@
 //everything that APL has https://en.wikipedia.org/wiki/APL_syntax_and_symbols
 //that isn't about matrices are in there.
 
+// TODO solid type behaviour:
+// what happens when you compare a number to a string (don't coearse the number to a string and compare that, that is stupid)
+// add a number to a string should also not concatenate.
+// you shouldn't be able to `add` two strings, you should `cat` them.
+// if you do want to covert to strings or numbers, there should be an explicit operation for that.
+// etc.
+// but every comparison should be defined.
+
 exports.gt = function (a, b) {
   return a > b
 }
@@ -89,6 +97,17 @@ exports.defr = function (a, b) {
   return b == null ? a : b
 }
 
+exports.xor = function (a, b) {
+  return !!(a ^ b)
+}
+//round to nearest b. 10 rounds to nearest 10. 0.01 rounds to two decimal places
+exports.round = function (a, b) {
+  b = b || 1
+  return Math.round(a/b)*b
+}
+
+//boolean
+
 exports.not = function (a) {
   return !a
 }
@@ -101,16 +120,9 @@ exports.or = function (a, b) {
   return a || b
 }
 
-exports.xor = function (a, b) {
-  return !!(a ^ b)
-}
-//round to nearest b. 10 rounds to nearest 10. 0.01 rounds to two decimal places
-exports.round = function (a, b) {
-  b = b || 1
-  return Math.round(a/b)*b
-}
 
 //does nothing
 exports.id = function (a) {
   return a
 }
+
