@@ -90,27 +90,27 @@ tape('more', function (t) {
     data: [1,2,3]
   }
 
-  function test (ast, expected) {
+  function test (src, ast, expected) {
+    console.log("eval:", src)
+    //TODO: parse(src) deepEqual ast
     t.deepEqual(eval(value, ast), expected)
   }
 
   //.reduce(.add(..))
   test(
+    '.reduce(.add(..))', //this is the better version.
     pipe(input(), get('data'), reduce(pipe(input(), add(parent(1))))),
     value.data.reduce((a, b) => { return a + b }, 0)
   )
 
   test(
+    '.reduce(add(.,..))',
     pipe(input(), get('data'), reduce(pipe(add(input(), parent(1))), 0) ),
-    value.data.reduce((a, b) => { return a + b }, 0)
-  )
-
-  test(
-    pipe(input(), get('data'), reduce(pipe(add(parent(0), parent(1))), 0) ),
     value.data.reduce((a, b) => { return a + b }, 0)
   )
 
   t.end()
 })
+
 
 
