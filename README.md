@@ -206,6 +206,17 @@ The new AST is more lispy:
 which are recursively nested.
 
 
+## syntax change?
+
+considering creating a special case for the first call in a pipe.
+to get the current item, and run with it do:
+
+`.foo.bar.baz` not `foo.bar.baz` which would now refer to the variable foo.
+(wasn't intending on implementing variables though, except for functions)
+
+this means a query must now start with `.filter(...)` but that means a variable
+can be the source. `log.filter(...)` Okay, I'm okay with that.
+
 ## safety/security log
 
 list of things I have done to make this safe to allow users to call
@@ -217,9 +228,5 @@ list of things I have done to make this safe to allow users to call
 ## License
 
 MIT
-
-
-
-
 
 
