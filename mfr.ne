@@ -1,4 +1,5 @@
-expression -> (value | name | pipe | object | call) {% (d) => d[0] %}
+#expression -> (value | name | pipe | object | call) {% (d) => d[0] %}
+expression -> (value | pipe) {% (d) => d[0] %}
 
 non_pipe -> ( name | object | call ) {% (d, a, b) => {
   if(d[0][0] == null) throw new Error('null in non-pipe')
@@ -88,5 +89,6 @@ number
 
 #TODO fix strings to support full escapes
 string -> "\"" [^"]:* "\""        {% (d) => d[1].join('') %}
+
 
 
