@@ -4,6 +4,13 @@ function interpreter (value, ast, stack) {
   return exports[ast.name].call(null, value, ast.value, stack || [])
 }
 
+function interpret_arg (value, arg, stack) {
+  if(arg && 'object' === typeof arg)
+    return interpreter(value, arg, stack)
+  else
+    return arg
+}
+
 exports = module.exports = interpreter
 
 //basic operations: all the stuff a normal language might
@@ -78,14 +85,6 @@ exports.parent = function (value, args, stack) {
   return stack[args[0]]
 }
 
-function interpret_arg (value, arg, stack) {
-//  if(value !== stack[0]) throw new Error('incorrect stack')
-  if(arg && 'object' === typeof arg)
-    return interpreter(value, arg, stack)
-  else
-    return arg
-}
-
 function filter(array, each) {
   return array.filter(each)
 }
@@ -123,6 +122,7 @@ exports.reduce = function (value, args, stack) {
 exports.set = function (value, args, stack) {
   if(value == null) value = {}
   var key = interpret_arg(value, args[0], stack)
+
   // SECURITY: what happens if someone tries to set a value to it's parent, creating a cycle?
   // if we had a recursive operator that could be an infinite loop.
   // when that message is serialized to JSON it will throw an error.
@@ -130,8 +130,8 @@ exports.set = function (value, args, stack) {
   //
   // if the value being set is an object, iterate up the stack and check it's not set already.
   // if it was the same object as before, we can skip the check.
-  var __value = safe_get(value, key)
 
+  var __value = safe_get(value, key)
   var _value = interpret_arg(__value, args[1], stack)
   if('object' === typeof _value && _value !== __value) {
     for(var i = 0; i < stack.length; i++)
@@ -143,4 +143,6 @@ exports.set = function (value, args, stack) {
 
   return safe_set(value, key, _value)
 }
+
+
 
