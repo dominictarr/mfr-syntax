@@ -257,7 +257,7 @@ tape('reduce', function (t) {
   )
   t.end()
 })
-return
+
 /*
 //add edge from a node already in the graph to new edge
 //gaurantees a connected graph.
@@ -305,6 +305,7 @@ var edges = [ { from: 0, to: 0 },
 ]
 
 tape('reduce graph', function (t) {
+  var test = Test(t, edges)
   function AST(src, expected) {
     return each(src, function (src) {
       console.log('interpret:', src)
@@ -316,15 +317,27 @@ tape('reduce graph', function (t) {
     })
   }
 
-  var ast = AST([
-    'filter(from.eq(0)).reduce(set(parent(1).to,true),{})',
-    'filter(from.eq(0)).reduce(set(.to,true),{})'
-  ], pipe(
-      filter(pipe(get('from'), eq(0))),
-      reduce(set(pipe(parent(1), get('to')), true), object())
-    )
+//  var ast = AST([
+//    'filter(from.eq(0)).reduce(set(parent(1).to,true),{})',
+//    'filter(from.eq(0)).reduce(set(.to,true),{})'
+//  ], pipe(
+//      filter(pipe(get('from'), eq(0))),
+//      reduce(set(pipe(parent(1), get('to')), true), object())
+//    )
+//  )
+//  t.deepEqual(eval(edges, ast), {0: true, 1: true, 2: true})
+
+  test(
+    '.filter(.from.eq(0)).reduce(.set(..to,true))',
+    pipe(
+      input(),
+      filter(pipe(input(), get('from'), eq(0))),
+      reduce(pipe(input(), set( pipe(parent(1), get('to')), true) ))
+    ),
+    {0: true, 1: true, 2: true}
   )
-  t.deepEqual(eval(edges, ast), {0: true, 1: true, 2: true})
+
+  return t.end()
 
   var ast2 = reduce(
       set(
@@ -363,8 +376,4 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
-
-
-
-
 
