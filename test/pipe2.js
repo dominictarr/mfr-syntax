@@ -1,5 +1,6 @@
 var tape = require('tape')
 var eval = require('../interpreter')
+var mfr = require('../')
 
 function pipe() {
   return {name: 'pipe2', value: [].slice.call(arguments)}
@@ -26,7 +27,7 @@ function gt (v) {
 }
 
 function eq (v) {
-  return {name: 'eq', value: [v]}
+  return {name: 'eq', value: [].slice.call(arguments)}
 }
 
 function filter(v) {
@@ -46,7 +47,7 @@ function add (v) {
 }
 
 function reduce (op, initial) {
-  return {name: 'reduce', value: [op, initial]}
+  return {name: 'reduce', value: [].slice.call(arguments)}
 }
 
 function set(key, value, defaults) {
@@ -59,31 +60,76 @@ function input () {
 
 var value = {foo: 3, bar: 3, baz: { qux: true }}
 tape('simple', function (t) {
-  function test (ast, expected) {
+  function test (src, ast, expected) {
+    console.log("test:", src)
+    if(src) {
+      var _ast = mfr.decode(src, true)
+      t.deepEqual(_ast, ast)
+    }
     t.deepEqual(eval(value, ast), expected)
   }
+  test(
+    '.get(0)',
+    pipe(input(), get(0)),
+    undefined
+  )
+
+
   //simplest possible pipelines:
   // .              - single item
-  test(pipe(input()), value)
+  test(
+    '.',
+    input(),
+    value
+  )
   // ..             - parent item
-  test(pipe(parent(1)), undefined)
+  test(
+    '..',
+    parent(1),
+    undefined
+  )
   // .foo           - property access
-  test(pipe(input(), get('foo')), value.foo)
+  test(
+    '.foo',
+    pipe(input(), get('foo')),
+    value.foo
+  )
   // .baz.qux       - chained property
-  test(pipe(input(), get('baz'), get('qux')), value.baz.qux)
+  test(
+    '.baz.qux',
+    pipe(input(), get('baz'), get('qux')),
+    value.baz.qux
+  )
   // .eq(2)         - function call
-  return t.end()
-  test(pipe(input(), eq(2)), value === 2)
+
+  test(
+    '.eq(2)',
+    pipe(input(), eq(2)),
+    value === 2
+  )
   // .foo.eq(3)     - function call on property
-  test(pipe(input(), get('foo'), eq(3)), value.foo === 3)
+  test(
+    '.foo.eq(3)',
+    pipe(input(), get('foo'), eq(3)),
+    value.foo === 3
+  )
+
   // eq(.foo, 3)    - function call on args, not a pipe!
-  test(pipe(eq(get('foo'), 3)), value.foo === value.bar)
+  test(
+    'eq(.foo,3)',
+    pipe(eq(pipe(input(), get('foo')), 3)),
+    value.foo === 3
+  )
   // eq(.foo, .bar) - function call with args
   // .foo.eq(..bar) - piped call with backtrack
+  test(
+    'eq(.foo,.bar)',
+    pipe(eq(pipe(input(), get('foo')), pipe(input(), get('bar')))),
+    value.foo === value.bar
+  )
 
   t.end()
 })
-
 
 tape('more', function (t) {
   var value = {
@@ -91,26 +137,49 @@ tape('more', function (t) {
   }
 
   function test (src, ast, expected) {
-    console.log("eval:", src)
-    //TODO: parse(src) deepEqual ast
+    if(src) {
+      var _ast = mfr.decode(src, true)
+      t.deepEqual(_ast, ast)
+      t.equal(JSON.stringify(_ast),JSON.stringify( ast))
+    }
     t.deepEqual(eval(value, ast), expected)
   }
 
   //.reduce(.add(..))
   test(
-    '.reduce(.add(..))', //this is the better version.
-    pipe(input(), get('data'), reduce(pipe(input(), add(parent(1))))),
+    '.data.reduce(.add(..))',
+    pipe(input(), get('data'), reduce(
+      pipe(
+        input(),
+        add(
+//          parent(1)
+          parent(1)
+        )
+      )
+    )),
     value.data.reduce((a, b) => { return a + b }, 0)
   )
-
+  return t.end()
   test(
-    '.reduce(add(.,..))',
-    pipe(input(), get('data'), reduce(pipe(add(input(), parent(1))), 0) ),
+    '.data.reduce(add(.,..),0)',
+    pipe(input(), get('data'), reduce( pipe(add(
+//      pipe(input()), parent(1)
+      pipe(input()), pipe(parent(1))
+
+    )), 0) ),
+    value.data.reduce((a, b) => { return a + b }, 0)
+  )
+  return t.end()
+  test(
+    null,
+    pipe(
+      input(), get('data'),
+      reduce( pipe(add(parent(0), parent(1))), 0)
+    ),
     value.data.reduce((a, b) => { return a + b }, 0)
   )
 
   t.end()
 })
-
 
 
