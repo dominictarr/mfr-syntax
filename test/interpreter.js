@@ -244,19 +244,20 @@ tape('interesting', function (t) {
 
   t.end()
 })
-return
+
 tape('reduce', function (t) {
+  var test = Test(t, value2)
   // reduce(bar.add(0))
   // reduce(bar.add())
   // reduce(.add(..), 0)
-  t.equal(eval(value2,
-    reduce(add( pipe(parent(1), get('bar')) ), 0)
-  ),
+  test(
+    '.reduce(.add(..bar),0)',
+    pipe(input(), reduce(pipe(input(), add( pipe(parent(1), get('bar')) )), 0)),
     1+2+3+4+5+6
   )
   t.end()
 })
-
+return
 /*
 //add edge from a node already in the graph to new edge
 //gaurantees a connected graph.
@@ -362,4 +363,8 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
+
+
+
+
 
