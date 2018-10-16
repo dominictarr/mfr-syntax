@@ -93,7 +93,7 @@ function Test(t, value) {
         for(var i = 0; i < a.length; i++)
           if(a[i] != b[i]) {
             console.log(a.substring(0, i) + '*****<'+a.substring(i)+'>*****<'+b.substring(i)+'>*****')
-            return
+            return actual
           }
       }
       return actual
@@ -306,26 +306,6 @@ var edges = [ { from: 0, to: 0 },
 
 tape('reduce graph', function (t) {
   var test = Test(t, edges)
-  function AST(src, expected) {
-    return each(src, function (src) {
-      console.log('interpret:', src)
-      var actual = decode(src)
-
-      t.deepEqual(actual, expected)
-      t.deepEqual(JSON.stringify(actual), JSON.stringify(expected))
-      return actual
-    })
-  }
-
-//  var ast = AST([
-//    'filter(from.eq(0)).reduce(set(parent(1).to,true),{})',
-//    'filter(from.eq(0)).reduce(set(.to,true),{})'
-//  ], pipe(
-//      filter(pipe(get('from'), eq(0))),
-//      reduce(set(pipe(parent(1), get('to')), true), object())
-//    )
-//  )
-//  t.deepEqual(eval(edges, ast), {0: true, 1: true, 2: true})
 
   test(
     '.filter(.from.eq(0)).reduce(.set(..to,true))',
@@ -337,30 +317,26 @@ tape('reduce graph', function (t) {
     {0: true, 1: true, 2: true}
   )
 
-  return t.end()
-
-  var ast2 = reduce(
-      set(
-        pipe(parent(1), get('from')), //key
-        set(pipe(parent(1), get('to')), true) //value
-      )
-    )
-
-  // reduce([.from,.to]=true, {})
-
-  /*
-    map(mrts=value.timestamp.gt(0) ? value.timestamp.min(timestamp) : value.timestamp)
-
-    reduce(set(.value.author, set(.value.content.contact, .value.content.following)), {})
-    reduce([.value.author]=[.value.content.contact]=.value.content.following, {})
-  */
-
   var o = {}
-  edges.forEach(e => (o[e.from] = o[e.from] || {})[e.to] = true )
 
-  console.log(JSON.stringify(ast))
-  t.deepEqual(
-    eval(edges, ast2),
+  test(
+    '.reduce(.set(..from,.set(...to,true)))',
+    pipe(
+      input(),
+      reduce(
+        pipe(
+          input(), set(
+            pipe(parent(1), get('from')), //key
+            pipe(
+              input(), set(
+                pipe(parent(2), get('to')),
+                true
+              )
+            )
+          )
+        )
+      )
+    ),
     { '0': { '0': true, '1': true, '2': true },
       '1': { '0': true, '4': true },
       '2': { '1': true, '3': true },
@@ -376,4 +352,9 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
+
+
+
+
+
 
