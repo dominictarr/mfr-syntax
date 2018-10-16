@@ -58,6 +58,10 @@ function input () {
   return {name: 'input', value: []}
 }
 
+function id () {
+  return {name: 'id', value: []}
+}
+
 var value = {foo: 3, bar: 3, baz: { qux: true }}
 tape('simple', function (t) {
   function test (src, ast, expected) {
@@ -179,7 +183,7 @@ tape('more', function (t) {
 
   t.end()
 })
-return
+
 tape('object', function (t) {
   var value = {
     foo: 2, bar: 3, baz: {qux: true}
@@ -197,16 +201,10 @@ tape('object', function (t) {
   //.reduce(.add(..))
   test(
     '.{foo,bar}',
-    pipe(input(), object('foo', input(), 'bar', input())),
+    pipe(input(), object({foo:id(), bar: id()})),
     {foo: value.foo, bar: value.bar}
   )
-
-
+  t.end()
 })
-
-
-
-
-
 
 
