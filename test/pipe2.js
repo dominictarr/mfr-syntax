@@ -3,7 +3,7 @@ var eval = require('../interpreter')
 var mfr = require('../')
 
 function pipe() {
-  return {name: 'pipe2', value: [].slice.call(arguments)}
+  return {name: 'pipe', value: [].slice.call(arguments)}
 }
 
 function get (k) {
@@ -159,17 +159,15 @@ tape('more', function (t) {
     )),
     value.data.reduce((a, b) => { return a + b }, 0)
   )
-  return t.end()
+
   test(
     '.data.reduce(add(.,..),0)',
-    pipe(input(), get('data'), reduce( pipe(add(
-//      pipe(input()), parent(1)
-      pipe(input()), pipe(parent(1))
-
+    pipe(input(), get('data'), reduce(pipe(add(
+      input(), parent(1)
     )), 0) ),
     value.data.reduce((a, b) => { return a + b }, 0)
   )
-  return t.end()
+
   test(
     null,
     pipe(
@@ -181,5 +179,34 @@ tape('more', function (t) {
 
   t.end()
 })
+return
+tape('object', function (t) {
+  var value = {
+    foo: 2, bar: 3, baz: {qux: true}
+  }
+
+  function test (src, ast, expected) {
+    if(src) {
+      var _ast = mfr.decode(src, true)
+      t.deepEqual(_ast, ast)
+      t.equal(JSON.stringify(_ast),JSON.stringify( ast))
+    }
+    t.deepEqual(eval(value, ast), expected)
+  }
+
+  //.reduce(.add(..))
+  test(
+    '.{foo,bar}',
+    pipe(input(), object('foo', input(), 'bar', input())),
+    {foo: value.foo, bar: value.bar}
+  )
+
+
+})
+
+
+
+
+
 
 

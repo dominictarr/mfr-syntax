@@ -58,24 +58,26 @@ exports.get = function (value, path) {
   return safe_get(value, path[0])
 }
 
-exports.pipe = function (value, ops, stack) {
-  for(var i = 0; i < ops.length; i++) {
-    value = interpreter(value, ops[i], stack)
-    stack = [value].concat(stack)
-  }
-  return value
-}
+//exports.pipe = function (value, ops, stack) {
+//  for(var i = 0; i < ops.length; i++) {
+//    value = interpreter(value, ops[i], stack)
+//    stack = [value].concat(stack)
+//  }
+//  return value
+//}
 
 exports.input = function (value, ops, stack) {
   return stack[0]
 }
 
-exports.pipe2 = function (value, ops, stack) {
+exports.pipe = function (value, ops, stack) {
   if(!ops.length) throw new Error('empty pipeline not allowed')
   if(!Array.isArray(ops)) throw new Error('ops must be array, was:'+JSON.stringify(ops))
   var first = ops[0]
+
   var _value = interpret_arg(value, first.value[0], stack)
   value = interpreter(_value, {name: first.name, value: first.value.slice(1)}, stack)
+
   for(var i = 1; i < ops.length; i++) {
     value = interpreter(value, ops[i], stack)
     stack = [value].concat(stack)
@@ -161,6 +163,7 @@ exports.set = function (value, args, stack) {
 
   return safe_set(value, key, _value)
 }
+
 
 
 
