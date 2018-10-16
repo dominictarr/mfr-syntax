@@ -75,10 +75,8 @@ exports.pipe = function (value, ops, stack) {
   if(!Array.isArray(ops)) throw new Error('ops must be array, was:'+JSON.stringify(ops))
   var first = ops[0]
   var _value = interpret_arg(value, first.value[0], stack)
-  console.log("PIPE", first, stack, _value)
   value = interpreter(_value, {name: first.name, value: first.value.slice(1)}, stack)
 //  stack = [value].concat(stack)
-  console.log('REST', ops.slice(1), stack, value)
   for(var i = 1; i < ops.length; i++) {
     value = interpreter(value, ops[i], stack)
     stack = [value].concat(stack)
@@ -156,7 +154,7 @@ exports.set = function (value, args, stack) {
   // if it was the same object as before, we can skip the check.
 
   var __value = safe_get(value, key)
-  var _value = interpret_arg(__value, args[1], stack)
+  var _value = interpret_arg(__value, args[1], [__value].concat(stack))
   if('object' === typeof _value && _value !== __value) {
     for(var i = 0; i < stack.length; i++)
       if(stack[i] === _value)
@@ -167,10 +165,6 @@ exports.set = function (value, args, stack) {
 
   return safe_set(value, key, _value)
 }
-
-
-
-
 
 
 
