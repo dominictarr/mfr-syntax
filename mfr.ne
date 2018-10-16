@@ -27,42 +27,19 @@ pipe2
     {% d => ({name: 'pipe', value: [{name: 'input', value: []}].concat(d[0].map(e => e[1]))  }) %}
 
   | ".":+
-    {% d => (/*{
-      name: 'pipe2', value: [*/
+    {% d => (
         d[0].length == 1
         ? { name: 'input', value: [] }
         : { name: 'parent', value: [d[0].length-1] }
-      /*]
-    }*/) %}
+     ) %}
 
   # parent operator then pipeline
   | ".":+ ("." non_pipe):+
     {% d => ({
       name: 'pipe', value: [
-      d[0][0].length == 1
-      ? { name: 'input', ast: d[0][0], value: [] }
-      : { name: 'parent', value: [d[0][0].length] }
+      { name: 'parent', value: [d[0].length] }
       ].concat(d[1].map(e=>e[1]))
     }) %}
-
-# but how is this modeled in the interpreter/AST?
-# how about: pipe always calls the first thing a special way.
-#            normal pipelines: .foo.bar.baz insert a special function at start. parent(0) or something.
-
-#pipe
-#  -> ".":+ {% d => ({name: 'parent', value: [d[0].length]}) %}
-#  |  non_pipe {% d => d[0] %}
-#  |  "." non_pipe {% d => ({name: 'pipe', value: [{name: 'input', value: [] }, d[1]] }) %}
-#  |  ".":+ non_pipe {% d => ({name: 'pipe', value: [{name: 'parent', value: [d[0].length] }, d[1]] }) %}
-#  |  ".":* non_pipe ("." non_pipe):+
-#    {%
-#      (d) => {
-#        return {
-#          name: 'pipe', value: (d[0].length ? [{name: 'parent', value: [d[0].length]}] : [])
-#            .concat([d[1]].concat(d[2].map(e => e[1])))
-#        }
-#      }
-#    %}
 
 open_close[OP, V, CL]
   -> $OP $V $CL        {% d => d[1][0] %}
@@ -124,4 +101,8 @@ number
 
 #TODO fix strings to support full escapes
 string -> "\"" [^"]:* "\""        {% (d) => d[1].join('') %}
+
+
+
+
 

@@ -204,6 +204,14 @@ tape('object', function (t) {
     pipe(input(), object({foo:id(), bar: id()})),
     {foo: value.foo, bar: value.bar}
   )
+
+  test(
+    '.{foo,qux:..baz.qux}',
+    pipe(input(), object({foo:id(), qux: pipe(parent(1), get('baz'), get('qux'))})),
+    {foo: value.foo, qux: value.baz.qux}
+  )
+
+
   t.end()
 })
 

@@ -74,10 +74,11 @@ exports.pipe = function (value, ops, stack) {
   if(!ops.length) throw new Error('empty pipeline not allowed')
   if(!Array.isArray(ops)) throw new Error('ops must be array, was:'+JSON.stringify(ops))
   var first = ops[0]
-
   var _value = interpret_arg(value, first.value[0], stack)
+  console.log("PIPE", first, stack, _value)
   value = interpreter(_value, {name: first.name, value: first.value.slice(1)}, stack)
-
+//  stack = [value].concat(stack)
+  console.log('REST', ops.slice(1), stack, value)
   for(var i = 1; i < ops.length; i++) {
     value = interpreter(value, ops[i], stack)
     stack = [value].concat(stack)
@@ -89,10 +90,12 @@ exports.pipe = function (value, ops, stack) {
 //special for async
 exports.object = function (value, pairs, stack) {
   var o = {}
-  stack = [value].concat(stack)
+//  stack = [value].concat(stack)
   for(var i = 0; i < pairs.length; i += 2) {
     var _key = pairs[i], _value = pairs[i+1]
-    o[_key] = interpret_arg(safe_get(value, _key), _value, stack)
+    var __value = safe_get(value, _key)
+    console.log('OBJ', _key, _value, [__value].concat(stack))
+    o[_key] = interpret_arg(__value, _value, [__value].concat(stack))
   }
 
   return o
@@ -100,9 +103,10 @@ exports.object = function (value, pairs, stack) {
 
 //special for async
 exports.parent = function (value, args, stack) {
-  if(!Number.isInteger(args[0]) && args[0] >= 0) return null
+  var i = args.length == 0 ? value : args[0]
+  if(!(Number.isInteger(i) && i >= 0)) return null
   //is value == stack[0] ?
-  return stack[args[0]]
+  return stack[i]
 }
 
 function filter(array, each) {
@@ -163,6 +167,8 @@ exports.set = function (value, args, stack) {
 
   return safe_set(value, key, _value)
 }
+
+
 
 
 

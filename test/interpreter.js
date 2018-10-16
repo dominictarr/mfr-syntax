@@ -28,7 +28,7 @@ function gt (v) {
 }
 
 function eq (v) {
-  return {name: 'eq', value: [v]}
+  return {name: 'eq', value: [].slice.call(arguments)}
 }
 
 function filter(v) {
@@ -44,11 +44,11 @@ function iftt (test, then, that) {
 }
 
 function add (v) {
-  return {name: 'add', value: [v]}
+  return {name: 'add', value: [].slice.call(arguments)}
 }
 
 function reduce (op, initial) {
-  return {name: 'reduce', value: [op, initial]}
+  return {name: 'reduce', value: [].slice.call(arguments)}
 }
 
 function set(key, value, defaults) {
@@ -57,6 +57,10 @@ function set(key, value, defaults) {
 
 function id() {
   return {name: 'id', value: []}
+}
+
+function input () {
+  return {name: 'input', value: []}
 }
 
 var value = {
@@ -78,9 +82,9 @@ function each(a, iter) {
 }
 
 tape('simple', function (t) {
-  t.equal(eval(value, get('easy')), true)
-  t.equal(eval(value, pipe(get('easy'))), true)
-  t.equal(eval(value, pipe(get('foo'), get('bar'))), false)
+  t.equal(eval(value, pipe(input(), get('easy'))), true)
+  t.equal(eval(value, pipe(input(), get('easy'))), true)
+  t.equal(eval(value, pipe(input(), get('foo'), get('bar'))), false)
 
   function AST(src, expected) {
     return each(src, function (src) {
@@ -88,49 +92,49 @@ tape('simple', function (t) {
       var actual = decode(src)
 
       t.deepEqual(actual, expected)
+      if(JSON.stringify(actual) != JSON.stringify(expected))
       t.deepEqual(JSON.stringify(actual), JSON.stringify(expected))
       return actual
     })
   }
-  t.deepEqual(eval(value,
-    AST([
-      'foo.{bar:id(),baqq:.baz.parent(1).qux}',
-//      'foo.{bar:id(),baqq:.}',
-      'foo.{bar,baqq:.baz.parent(1).qux}',
+
+  function test(src, ast, expected) {
+    t.deepEqual(eval(value, AST(src, ast)), expected)
+  }
+  test([
+//      '.foo.{bar,baqq:..baz.parent(1).qux}',
+      '.foo.{bar,baqq:..qux}',
     ],
     pipe(
+      input(),
       get('foo'),
       object({
         bar:id(),
         baqq: pipe(
-          parent(1),
-          get('baz'),
+//          parent(1),
+//          get('baz'),
           parent(1),
           get('qux')
         )
-        })
-      )
-    )), {bar: false, baqq: 3})
-
-
+      })
+    ),
+    {bar: false, baqq: 3})
 
   //correct way to perform the above query
-  t.deepEqual(eval(value,
-    AST([
-      'foo.{bar,baqq:.qux}',
-    ],
+  test(
+    '.foo.{bar,baqq:..qux}',
     pipe(
+      input(),
       get('foo'),
       object({ bar:id(), baqq: pipe(parent(1), get('qux')) })
-      )
-    )), {bar: false, baqq: 3})
+    ),
+    {bar: false, baqq: 3}
+  )
 
-  t.deepEqual(eval(value,
-    AST([
-      'foo.{bar:id(),baqq:parent(2).fop}',
-      'foo.{bar,baqq:..fop}',
-    ],
+  test(
+    '.foo.{bar,baqq:...fop}',
     pipe(
+      input(),
       get('foo'),
       object({
         bar:id(),
@@ -138,27 +142,34 @@ tape('simple', function (t) {
           parent(2),
           get('fop')
         )
-        })
-      )
-    )), {bar: false, baqq: -1})
+      })
+    ),
+    {bar: false, baqq: -1}
+  )
 
+  test(
+    '.fop.gt(0)',
+    pipe(input(), get('fop'), gt(0)),
+    false
+  )
 
-  t.equal(eval(value, AST('fop.gt(0)', pipe(get('fop'), gt(0)))), false)
-
-  t.deepEqual(eval(value,
-    AST([
-      '{fooQux:.foo.qux,equal:.foo.qux.eq(parent(2).more.get(2))}',
-      '{fooQux:.foo.qux,equal:.foo.qux.eq(..more.get(2))}'
-    ],
-    object({
+  test(
+    '.{fooQux:..foo.qux,equal:..foo.qux.eq(....more.get(2))}',
+    pipe(input(), object({
       fooQux: pipe(parent(1), get('foo'), get('qux')),
-      equal: pipe(parent(1), get('foo'), get('qux'), eq(pipe(parent(2), get('more'), get(2))))
-   })
-  )),
+      equal: pipe(parent(1), get('foo'), get('qux'), eq(pipe(parent(3), get('more'), get(2))))
+   })),
     {fooQux: 3, equal: true }
   )
 
-
+  test(
+    '.{fooQux:..foo.qux,equal:eq(..more.get(2),..foo.qux)}',
+    pipe(input(), object({
+      fooQux: pipe(parent(1), get('foo'), get('qux')),
+      equal: pipe(eq(pipe(parent(1), get('more'), get(2) ), pipe(parent(1), get('foo'), get('qux') )))
+   })),
+    {fooQux: 3, equal: true }
+  )
 
   // "{fooQux: foo.qux, equal: foo.qux.eq(.more[2])}"
 
@@ -171,11 +182,11 @@ tape('simple', function (t) {
     })
   */
 
-  t.deepEqual(eval(value,
-    AST('more.filter(eq(2))',
-    pipe(get('more'), filter(eq(2)))
-    )
-  ), [2])
+  test(
+    '.more.filter(.eq(2))',
+    pipe(input(), get('more'), filter(pipe(input(), eq(2)))),
+    [2]
+  )
 
   t.end()
 })
@@ -210,7 +221,7 @@ tape('interesting', function (t) {
 
   t.end()
 })
-
+return
 tape('reduce', function (t) {
   // reduce(bar.add(0))
   // reduce(bar.add())
@@ -328,4 +339,12 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
+
+
+
+
+
+
+
+
 
