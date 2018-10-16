@@ -81,26 +81,38 @@ function each(a, iter) {
   return v
 }
 
-tape('simple', function (t) {
-  t.equal(eval(value, pipe(input(), get('easy'))), true)
-  t.equal(eval(value, pipe(input(), get('easy'))), true)
-  t.equal(eval(value, pipe(input(), get('foo'), get('bar'))), false)
-
+function Test(t, value) {
   function AST(src, expected) {
     return each(src, function (src) {
       console.log('interpret:', src)
       var actual = decode(src)
 
       t.deepEqual(actual, expected)
-      if(JSON.stringify(actual) != JSON.stringify(expected))
-      t.deepEqual(JSON.stringify(actual), JSON.stringify(expected))
+      var a = JSON.stringify(actual), b = JSON.stringify(expected)
+      if(a != b) {
+        for(var i = 0; i < a.length; i++)
+          if(a[i] != b[i]) {
+            console.log(a.substring(0, i) + '*****<'+a.substring(i)+'>*****<'+b.substring(i)+'>*****')
+            return
+          }
+      }
       return actual
     })
   }
 
-  function test(src, ast, expected) {
+  return function test(src, ast, expected) {
     t.deepEqual(eval(value, AST(src, ast)), expected)
   }
+
+}
+
+tape('simple', function (t) {
+  var test = Test(t, value)
+
+  t.equal(eval(value, pipe(input(), get('easy'))), true)
+  t.equal(eval(value, pipe(input(), get('easy'))), true)
+  t.equal(eval(value, pipe(input(), get('foo'), get('bar'))), false)
+
   test([
 //      '.foo.{bar,baqq:..baz.parent(1).qux}',
       '.foo.{bar,baqq:..qux}',
@@ -201,23 +213,34 @@ var value2 = [
 ]
 
 tape('interesting', function (t) {
-
-  t.deepEqual(eval(value2,
-    filter(pipe(get('foo'), eq(true)))
-  ), [
+  var test = Test(t, value2)
+  test(
+    '.filter(.foo.eq(true))',
+    pipe(input(), filter(pipe(input(), get('foo'), eq(true)))),
+    [
       value2[0],
       value2[2],
       value2[3],
-  ])
+    ]
+  )
 
   //map(foo.eq(true) ? bar : baz)
   //map(if(foo.eq(true), bar, baz))
 
-  t.deepEqual(eval(value2,
-    map(iftt(pipe(get('foo'), eq(true)), get('bar'), get('baz')))
-  ), [
-    1, -2, 3, 4, -5, -6
-  ])
+  //XXX not sure this is correct. I don't think if should need `.if` should just be `if`?
+  test(
+    '.map(.if(.foo.eq(true),.bar,.baz))',
+    pipe(input(),
+      map(pipe(
+        input(),
+        iftt(
+        pipe(input(), get('foo'), eq(true)),
+        pipe(input(), get('bar')),
+        pipe(input(), get('baz'))
+      )))
+    ),
+    [1, -2, 3, 4, -5, -6]
+  )
 
   t.end()
 })
@@ -339,12 +362,4 @@ tape('reduce graph', function (t) {
 
   t.end()
 })
-
-
-
-
-
-
-
-
 
